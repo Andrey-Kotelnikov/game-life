@@ -165,18 +165,27 @@ const countNeighbors = (index) => {
   return count;
 };
 
+const stopGame = () => {
+  clearInterval(generationInterval); // Если эволюция запущена, останавливаем
+  generationInterval = null;
+  createGrid();
+};
+
+const startGame = () => {
+  generationInterval = setInterval(generateNextGeneration, INTERVAL_DELAY);
+};
+
 const toggleGame = () => {
   if (generationInterval) {
-    clearInterval(generationInterval); // Если эволюция запущена, останавливаем
-    generationInterval = null;
-    createGrid();
+    stopGame();
   } else {
-    generationInterval = setInterval(generateNextGeneration, INTERVAL_DELAY); // Иначе запускаем с интервалом 200 миллисекунд
+    startGame();
   }
 };
 
 const generateNextGeneration = () => {
   const nextGeneration = [];
+  let hasChanged = false; // Флаг, указывающий, изменилось ли состояние хотя бы одной клетки
 
   for (let i = 0; i < cellsArray.length; i++) {
     const counterNeighbors = countNeighbors(i);
@@ -188,7 +197,17 @@ const generateNextGeneration = () => {
       nextCellState = true;
     }
 
+    if (nextCellState !== cellsArray[i]) {
+      hasChanged = true; // Обнаружено изменение, поколения не идентичны
+    }
+
     nextGeneration.push(nextCellState);
+  }
+
+  if (!hasChanged) {
+    stopGame();
+    generationText.textContent = `Автоматическая остановка. Поколение: ${generationCount}`;
+    return;
   }
 
   cellsArray = nextGeneration;
