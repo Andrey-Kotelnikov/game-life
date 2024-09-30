@@ -1,0 +1,231 @@
+const canvas = document.querySelector('.canvas');
+const context = canvas.getContext('2d');
+
+const setupButton = document.querySelector('.setup-button');
+const startButton = document.querySelector('.start-button');
+const clearButton = document.querySelector('.clear-button');
+const randomButton = document.querySelector('.random-button');
+
+const generationText = document.querySelector('.generation');
+let generationCount = 0;
+
+let X_SIZE_TABLE;
+let Y_SIZE_TABLE;
+
+let MAX;
+let MIN;
+
+let CELL_COLOR = '#45a29e';
+
+const CELL_SIZE_KOEF = 10;
+const INTERVAL_DELAY = 100;
+
+// const CANVAS_WIDTH = "400";
+// const CANVAS_HEIGHT = "400";
+
+let generationInterval;
+
+let cellsArray = [];
+
+let isMouseDown = false; // Флаг для отслеживания нажатия мыши
+let lastX = null; // Координаты последней измененной клетки по X
+let lastY = null; // Координаты последней измененной клетки по Y
+
+const createTable = () => {
+  canvas.width = `${X_SIZE_TABLE * CELL_SIZE_KOEF}`;
+  canvas.height = `${Y_SIZE_TABLE * CELL_SIZE_KOEF}`;
+
+  cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE }, () => Math.random() < 0.0);
+
+  render();
+  // drawCells();
+  createGrid();
+};
+
+const setupGame = () => {
+  X_SIZE_TABLE = parseInt(document.querySelector('#x-size').value);
+  Y_SIZE_TABLE = parseInt(document.querySelector('#y-size').value);
+
+  MIN = Math.min(X_SIZE_TABLE, Y_SIZE_TABLE);
+  MAX = Math.max(X_SIZE_TABLE, Y_SIZE_TABLE);
+
+  generationCount = 0;
+  generationText.textContent = 'Поколение: 0';
+
+  clearInterval(generationInterval);
+
+  createTable(); // Создаем игровое поле
+};
+
+const randomGenerate = () => {
+  cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE }, () => Math.random() < 0.15);
+  render();
+  createGrid();
+};
+
+const clearCanvas = () => context.clearRect(0, 0, canvas.width, canvas.height);
+
+const render = () => {
+  clearCanvas();
+  drawCells();
+  // createGrid();
+};
+
+const createGrid = () => {
+  for (let i = 0; i <= MAX; i++) {
+    const x = (i * canvas.width) / X_SIZE_TABLE;
+    const y = (i * canvas.height) / Y_SIZE_TABLE;
+
+    context.strokeStyle = '#000';
+
+    if (i <= Y_SIZE_TABLE) {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(canvas.width, y);
+      context.stroke();
+    }
+
+    if (i <= X_SIZE_TABLE) {
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, canvas.height);
+      context.stroke();
+    }
+  }
+};
+
+const clearCells = () => {
+  cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE });
+  generationCount = 0;
+  generationText.textContent = 'Поколение: 0';
+  clearCanvas();
+  createGrid();
+};
+
+const drawCells = () => {
+  // Проходим по строкам сверху вниз
+  for (let i = 0; i < Y_SIZE_TABLE; i++) {
+    // Проходим по ячейкам слево направо
+    for (let j = 0; j < X_SIZE_TABLE; j++) {
+      const index = i * X_SIZE_TABLE + j;
+      if (cellsArray[index]) {
+        context.fillStyle = CELL_COLOR; // Заливаем цветом клетки
+        context.fillRect(j * CELL_SIZE_KOEF + 1, i * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
+        // context.strokeRect(j * CELL_SIZE_KOEF, i * CELL_SIZE_KOEF, CELL_SIZE_KOEF, CELL_SIZE_KOEF);
+      }
+    }
+  }
+};
+
+const drawCell = (x, y, isActive) => {
+  context.fillStyle = isActive ? CELL_COLOR : '#1f2833';
+  context.fillRect(x * CELL_SIZE_KOEF + 1, y * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
+};
+
+// Функция для изменения состояния клетки
+const toggleCell = (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / (canvas.width / X_SIZE_TABLE));
+  const y = Math.floor((event.clientY - rect.top) / (canvas.height / Y_SIZE_TABLE));
+
+  // Проверяем, совпадают ли текущие координаты с последними измененными
+  if (x === lastX && y === lastY) return;
+
+  const index = y * X_SIZE_TABLE + x;
+  cellsArray[index] = !cellsArray[index];
+  drawCell(x, y, cellsArray[index]);
+
+  lastX = x;
+  lastY = y;
+};
+
+// Функция для замыкания координат по границе
+const wrapCoordinate = (coord, maxSize) => {
+  return (coord + maxSize) % maxSize;
+};
+
+const countNeighbors = (index) => {
+  const x = index % X_SIZE_TABLE;
+  const y = Math.floor(index / X_SIZE_TABLE);
+
+  let count = 0;
+
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+
+      const neighborX = wrapCoordinate(x + i, X_SIZE_TABLE);
+      const neighborY = wrapCoordinate(y + j, Y_SIZE_TABLE);
+
+      const neighborIndex = neighborY * X_SIZE_TABLE + neighborX;
+
+      count += cellsArray[neighborIndex] ? 1 : 0; // Добавляем 1, если клетка живая
+    }
+  }
+  return count;
+};
+
+const toggleGame = () => {
+  if (generationInterval) {
+    clearInterval(generationInterval); // Если эволюция запущена, останавливаем
+    generationInterval = null;
+    createGrid();
+  } else {
+    generationInterval = setInterval(generateNextGeneration, INTERVAL_DELAY); // Иначе запускаем с интервалом 200 миллисекунд
+  }
+};
+
+const generateNextGeneration = () => {
+  const nextGeneration = [];
+
+  for (let i = 0; i < cellsArray.length; i++) {
+    const counterNeighbors = countNeighbors(i);
+    let nextCellState = cellsArray[i];
+
+    if (cellsArray[i] && (counterNeighbors < 2 || counterNeighbors > 3)) {
+      nextCellState = false;
+    } else if (counterNeighbors === 3) {
+      nextCellState = true;
+    }
+
+    nextGeneration.push(nextCellState);
+  }
+
+  cellsArray = nextGeneration;
+
+  generationCount++;
+  generationText.textContent = `Поколение: ${generationCount}`;
+
+  render();
+  // clearCanvas();
+  // drawCells();
+};
+
+const handleMouseUp = () => {
+  isMouseDown = false;
+  lastX = null;
+  lastY = null;
+};
+
+setupGame();
+
+// =============== listeners ================
+
+setupButton.addEventListener('click', setupGame);
+startButton.addEventListener('click', toggleGame);
+clearButton.addEventListener('click', clearCells);
+randomButton.addEventListener('click', randomGenerate);
+
+canvas.addEventListener('mousedown', (event) => {
+  isMouseDown = true;
+  toggleCell(event);
+});
+
+canvas.addEventListener('mousemove', (event) => {
+  if (isMouseDown) {
+    toggleCell(event);
+  }
+});
+
+canvas.addEventListener('mouseup', handleMouseUp);
+canvas.addEventListener('mouseleave', handleMouseUp);
