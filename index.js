@@ -6,7 +6,10 @@ const startButton = document.querySelector('.start-button');
 const clearButton = document.querySelector('.clear-button');
 const randomButton = document.querySelector('.random-button');
 
-const generationText = document.querySelector('.generation');
+const xSizeInput = document.querySelector('#x-size');
+const ySizeInput = document.querySelector('#y-size');
+
+const generationCounterText = document.querySelector('.generation');
 let generationCount = 0;
 
 let X_SIZE_TABLE;
@@ -23,10 +26,8 @@ const INTERVAL_DELAY = 100;
 // const CANVAS_WIDTH = "400";
 // const CANVAS_HEIGHT = "400";
 
-let generationInterval;
-
-let cellsArray = [];
-
+let generationInterval; // Интервал для создания нового поколения
+let cellsArray = []; // Массив состояний всех клеток
 let isMouseDown = false; // Флаг для отслеживания нажатия мыши
 let lastX = null; // Координаты последней измененной клетки по X
 let lastY = null; // Координаты последней измененной клетки по Y
@@ -35,22 +36,25 @@ const createTable = () => {
   canvas.width = `${X_SIZE_TABLE * CELL_SIZE_KOEF}`;
   canvas.height = `${Y_SIZE_TABLE * CELL_SIZE_KOEF}`;
 
-  cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE }, () => Math.random() < 0.0);
-
+  resetCellsArray();
   render();
   // drawCells();
   createGrid();
 };
 
-const setupGame = () => {
-  X_SIZE_TABLE = parseInt(document.querySelector('#x-size').value);
-  Y_SIZE_TABLE = parseInt(document.querySelector('#y-size').value);
+const resetCellsArray = (initialValue = false) => {
+  cellsArray = new Array(X_SIZE_TABLE * Y_SIZE_TABLE).fill(initialValue);
+};
+
+const initializeGame = () => {
+  X_SIZE_TABLE = parseInt(xSizeInput.value);
+  Y_SIZE_TABLE = parseInt(ySizeInput.value);
 
   MIN = Math.min(X_SIZE_TABLE, Y_SIZE_TABLE);
   MAX = Math.max(X_SIZE_TABLE, Y_SIZE_TABLE);
 
   generationCount = 0;
-  generationText.textContent = 'Поколение: 0';
+  generationCounterText.textContent = 'Поколение: 0';
 
   clearInterval(generationInterval);
 
@@ -95,9 +99,9 @@ const createGrid = () => {
 };
 
 const clearCells = () => {
-  cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE });
+  resetCellsArray();
   generationCount = 0;
-  generationText.textContent = 'Поколение: 0';
+  generationCounterText.textContent = 'Поколение: 0';
   clearCanvas();
   createGrid();
 };
@@ -122,8 +126,10 @@ const drawCell = (x, y, isActive) => {
   context.fillRect(x * CELL_SIZE_KOEF + 1, y * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
 };
 
+const getCellIndex = (x, y) => y * X_SIZE_TABLE + x;
+
 // Функция для изменения состояния клетки
-const toggleCell = (event) => {
+const changeCellState = (event) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor((event.clientX - rect.left) / (canvas.width / X_SIZE_TABLE));
   const y = Math.floor((event.clientY - rect.top) / (canvas.height / Y_SIZE_TABLE));
@@ -131,7 +137,7 @@ const toggleCell = (event) => {
   // Проверяем, совпадают ли текущие координаты с последними измененными
   if (x === lastX && y === lastY) return;
 
-  const index = y * X_SIZE_TABLE + x;
+  const index = getCellIndex(x, y);
   cellsArray[index] = !cellsArray[index];
   drawCell(x, y, cellsArray[index]);
 
@@ -157,7 +163,7 @@ const countNeighbors = (index) => {
       const neighborX = wrapCoordinate(x + i, X_SIZE_TABLE);
       const neighborY = wrapCoordinate(y + j, Y_SIZE_TABLE);
 
-      const neighborIndex = neighborY * X_SIZE_TABLE + neighborX;
+      const neighborIndex = getCellIndex(neighborX, neighborY);
 
       count += cellsArray[neighborIndex] ? 1 : 0; // Добавляем 1, если клетка живая
     }
@@ -206,18 +212,16 @@ const generateNextGeneration = () => {
 
   if (!hasChanged) {
     stopGame();
-    generationText.textContent = `Автоматическая остановка. Поколение: ${generationCount}`;
+    generationCounterText.textContent = `Автоматическая остановка. Поколение: ${generationCount}`;
     return;
   }
 
   cellsArray = nextGeneration;
 
   generationCount++;
-  generationText.textContent = `Поколение: ${generationCount}`;
+  generationCounterText.textContent = `Поколение: ${generationCount}`;
 
   render();
-  // clearCanvas();
-  // drawCells();
 };
 
 const handleMouseUp = () => {
@@ -226,23 +230,23 @@ const handleMouseUp = () => {
   lastY = null;
 };
 
-setupGame();
+initializeGame();
 
 // =============== listeners ================
 
-setupButton.addEventListener('click', setupGame);
+setupButton.addEventListener('click', initializeGame);
 startButton.addEventListener('click', toggleGame);
 clearButton.addEventListener('click', clearCells);
 randomButton.addEventListener('click', randomGenerate);
 
 canvas.addEventListener('mousedown', (event) => {
   isMouseDown = true;
-  toggleCell(event);
+  changeCellState(event);
 });
 
 canvas.addEventListener('mousemove', (event) => {
   if (isMouseDown) {
-    toggleCell(event);
+    changeCellState(event);
   }
 });
 
