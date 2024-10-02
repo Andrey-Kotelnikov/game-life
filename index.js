@@ -19,6 +19,7 @@ let MAX;
 let MIN;
 
 let CELL_COLOR = '#45a29e';
+let CANVAS_COLOR = '#1f2833';
 
 const CELL_SIZE_KOEF = 10;
 const INTERVAL_DELAY = 100;
@@ -123,7 +124,7 @@ const drawCells = () => {
 };
 
 const drawCell = (x, y, isActive) => {
-  context.fillStyle = isActive ? CELL_COLOR : '#1f2833';
+  context.fillStyle = isActive ? CELL_COLOR : CANVAS_COLOR;
   context.fillRect(x * CELL_SIZE_KOEF + 1, y * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
 };
 
