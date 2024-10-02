@@ -28,11 +28,13 @@ const INTERVAL_DELAY = 100;
 // const CANVAS_HEIGHT = "400";
 
 let generationInterval; // Интервал для создания нового поколения
-let cellsArray = []; // Массив состояний всех клеток
-let changedCellsIndexes = []; // Массив индексов измененных клеток
 let isMouseDown = false; // Флаг для отслеживания нажатия мыши
 let lastX = null; // Координаты последней измененной клетки по X
 let lastY = null; // Координаты последней измененной клетки по Y
+
+let cellsArray = []; // Массив состояний всех клеток
+let changedCellsIndexes = []; // Массив индексов измененных клеток
+let activeCells = new Set(); // Массив активных клеток
 
 const createTable = () => {
   canvas.width = `${X_SIZE_TABLE * CELL_SIZE_KOEF}`;
@@ -42,6 +44,30 @@ const createTable = () => {
   render();
   // drawCells();
   createGrid();
+};
+
+const initializeActiveCells = () => {
+  activeCells.clear();
+  let count = 0;
+  for (let i = 0; i < cellsArray.length; i++) {
+    if (cellsArray[i]) {
+      count++;
+      addCellAndNeighborsToActive(i, activeCells);
+    }
+  }
+};
+
+const addCellAndNeighborsToActive = (index, cells) => {
+  const [x, y] = getCoordsByIndex(index);
+
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      const neighborX = wrapCoordinate(x + i, X_SIZE_TABLE);
+      const neighborY = wrapCoordinate(y + j, Y_SIZE_TABLE);
+      const neighborIndex = getCellIndex(neighborX, neighborY);
+      cells.add(neighborIndex); // Добавим в Set клетку и соседей
+    }
+  }
 };
 
 const resetCellsArray = (initialValue = false) => {
@@ -67,6 +93,8 @@ const randomGenerate = () => {
   cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE }, () => Math.random() < 0.15);
   render();
   createGrid();
+
+  initializeActiveCells();
 };
 
 const clearCanvas = () => context.clearRect(0, 0, canvas.width, canvas.height);
@@ -106,6 +134,8 @@ const clearCells = () => {
   generationCounterText.textContent = 'Поколение: 0';
   clearCanvas();
   createGrid();
+
+  activeCells.clear();
 };
 
 const drawCells = () => {
@@ -147,6 +177,9 @@ const changeCellState = (event) => {
 
   const index = getCellIndex(x, y);
   cellsArray[index] = !cellsArray[index];
+  if (cellsArray[index]) {
+    addCellAndNeighborsToActive(index, activeCells);
+  }
   drawCell(x, y, cellsArray[index]);
 
   lastX = x;
@@ -185,6 +218,9 @@ const stopGame = () => {
 };
 
 const startGame = () => {
+  // if (activeCells.size === 0) {
+  initializeActiveCells(); // На случай, если активные клетки не были установлены
+  // }
   generationInterval = setInterval(generateNextGeneration, INTERVAL_DELAY);
 };
 
@@ -204,27 +240,54 @@ const renderChangedCells = () => {
 };
 
 const generateNextGeneration = () => {
-  const nextGeneration = [];
+  const nextGeneration = [...cellsArray];
   let hasChanged = false; // Флаг, указывающий, изменилось ли состояние хотя бы одной клетки
   changedCellsIndexes = [];
+  const newActiveCells = new Set();
 
-  for (let i = 0; i < cellsArray.length; i++) {
-    const counterNeighbors = countNeighbors(i);
-    let nextCellState = cellsArray[i];
+  activeCells.forEach((index) => {
+    const counterNeighbors = countNeighbors(index);
+    const currentState = cellsArray[index];
+    let nextCellState = currentState;
 
-    if (cellsArray[i] && (counterNeighbors < 2 || counterNeighbors > 3)) {
-      nextCellState = false;
+    if (currentState) {
+      if (counterNeighbors < 2 || counterNeighbors > 3) {
+        nextCellState = false;
+      }
     } else if (counterNeighbors === 3) {
       nextCellState = true;
     }
 
-    if (nextCellState !== cellsArray[i]) {
-      hasChanged = true; // Обнаружено изменение, поколения не идентичны
-      changedCellsIndexes.push(i);
+    if (nextCellState) {
+      addCellAndNeighborsToActive(index, newActiveCells);
     }
 
-    nextGeneration.push(nextCellState);
-  }
+    if (nextCellState !== currentState) {
+      nextGeneration[index] = nextCellState;
+      hasChanged = true; // Обнаружено изменение, поколения не идентичны
+      changedCellsIndexes.push(index);
+    }
+  });
+
+  // for (let i = 0; i < cellsArray.length; i++) {
+  //   const counterNeighbors = countNeighbors(i);
+  //   let nextCellState = cellsArray[i];
+
+  //   if (cellsArray[i]) {
+  //     if (counterNeighbors < 2 || counterNeighbors > 3) {
+  //       nextCellState = false;
+  //     }
+  //   } else if (counterNeighbors === 3) {
+  //     nextCellState = true;
+  //   }
+
+  //   if (nextCellState !== cellsArray[i]) {
+  //     hasChanged = true; // Обнаружено изменение, поколения не идентичны
+  //     changedCellsIndexes.push(i);
+  //   }
+
+  //   nextGeneration[i] = nextCellState;
+  // }
 
   if (!hasChanged) {
     stopGame();
@@ -233,6 +296,9 @@ const generateNextGeneration = () => {
   }
 
   cellsArray = nextGeneration;
+  // console.log('newActiveCells', newActiveCells);
+  activeCells = newActiveCells;
+
   generationCount++;
   generationCounterText.textContent = `Поколение: ${generationCount}`;
 
