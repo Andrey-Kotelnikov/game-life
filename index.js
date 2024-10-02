@@ -28,6 +28,7 @@ const INTERVAL_DELAY = 100;
 
 let generationInterval; // Интервал для создания нового поколения
 let cellsArray = []; // Массив состояний всех клеток
+let changedCellsIndexes = []; // Массив индексов измененных клеток
 let isMouseDown = false; // Флаг для отслеживания нажатия мыши
 let lastX = null; // Координаты последней измененной клетки по X
 let lastY = null; // Координаты последней измененной клетки по Y
@@ -111,7 +112,7 @@ const drawCells = () => {
   for (let i = 0; i < Y_SIZE_TABLE; i++) {
     // Проходим по ячейкам слево направо
     for (let j = 0; j < X_SIZE_TABLE; j++) {
-      const index = i * X_SIZE_TABLE + j;
+      const index = getCellIndex(j, i);
       if (cellsArray[index]) {
         context.fillStyle = CELL_COLOR; // Заливаем цветом клетки
         context.fillRect(j * CELL_SIZE_KOEF + 1, i * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
@@ -127,6 +128,12 @@ const drawCell = (x, y, isActive) => {
 };
 
 const getCellIndex = (x, y) => y * X_SIZE_TABLE + x;
+
+const getCoordsByIndex = (index) => {
+  const x = index % X_SIZE_TABLE;
+  const y = Math.floor(index / X_SIZE_TABLE);
+  return [x, y];
+};
 
 // Функция для изменения состояния клетки
 const changeCellState = (event) => {
@@ -151,8 +158,7 @@ const wrapCoordinate = (coord, maxSize) => {
 };
 
 const countNeighbors = (index) => {
-  const x = index % X_SIZE_TABLE;
-  const y = Math.floor(index / X_SIZE_TABLE);
+  const [x, y] = getCoordsByIndex(index);
 
   let count = 0;
 
@@ -189,9 +195,17 @@ const toggleGame = () => {
   }
 };
 
+const renderChangedCells = () => {
+  changedCellsIndexes.forEach((index) => {
+    const [x, y] = getCoordsByIndex(index);
+    drawCell(x, y, cellsArray[index]);
+  });
+};
+
 const generateNextGeneration = () => {
   const nextGeneration = [];
   let hasChanged = false; // Флаг, указывающий, изменилось ли состояние хотя бы одной клетки
+  changedCellsIndexes = [];
 
   for (let i = 0; i < cellsArray.length; i++) {
     const counterNeighbors = countNeighbors(i);
@@ -205,6 +219,7 @@ const generateNextGeneration = () => {
 
     if (nextCellState !== cellsArray[i]) {
       hasChanged = true; // Обнаружено изменение, поколения не идентичны
+      changedCellsIndexes.push(i);
     }
 
     nextGeneration.push(nextCellState);
@@ -217,11 +232,11 @@ const generateNextGeneration = () => {
   }
 
   cellsArray = nextGeneration;
-
   generationCount++;
   generationCounterText.textContent = `Поколение: ${generationCount}`;
 
-  render();
+  // render();
+  renderChangedCells();
 };
 
 const handleMouseUp = () => {
