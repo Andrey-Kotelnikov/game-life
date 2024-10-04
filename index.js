@@ -4,33 +4,23 @@ const context = canvas.getContext('2d');
 const startButton = document.querySelector('.start-button');
 const clearButton = document.querySelector('.clear-button');
 const randomButton = document.querySelector('.random-button');
-
 const speedSlider = document.querySelector('#speed-slider');
-
+const scaleSlider = document.querySelector('#scale-slider');
 const xSizeInput = document.querySelector('#x-size');
 const ySizeInput = document.querySelector('#y-size');
-
 const generationTimeText = document.querySelector('.generation-time');
 const generationCounterText = document.querySelector('.generation');
-let generationCount = 0;
 
 let X_SIZE_TABLE;
 let Y_SIZE_TABLE;
-
 let MAX;
 let MIN;
-
 let CELL_COLOR = '#45a29e';
 let CANVAS_COLOR = '#1f2833';
+let CELL_SIZE_KOEF = 10;
 
-const CELL_SIZE_KOEF = 10;
-const INTERVAL_DELAY = 100;
-
+let generationCount = 0;
 let isRuning = false;
-
-// const CANVAS_WIDTH = "400";
-// const CANVAS_HEIGHT = "400";
-
 let generationInterval; // Интервал для создания нового поколения
 let cellsArray = []; // Массив состояний всех клеток
 let changedCellsIndexes = []; // Массив индексов измененных клеток
@@ -38,14 +28,26 @@ let isMouseDown = false; // Флаг для отслеживания нажат�
 let lastX = null; // Координаты последней измененной клетки по X
 let lastY = null; // Координаты последней измененной клетки по Y
 
-const createTable = () => {
+setSizeTable = () => {
   canvas.width = `${X_SIZE_TABLE * CELL_SIZE_KOEF}`;
   canvas.height = `${Y_SIZE_TABLE * CELL_SIZE_KOEF}`;
+};
 
+const createTable = () => {
+  setSizeTable();
   resetCellsArray();
   clearCanvas();
   drawCells();
   createGrid();
+};
+
+const updateScale = () => {
+  CELL_SIZE_KOEF = parseInt(scaleSlider.value);
+  setSizeTable();
+  if (CELL_SIZE_KOEF > 2) {
+    clearCanvas();
+    createGrid();
+  }
 };
 
 const resetCellsArray = (initialValue = false) => {
@@ -284,6 +286,7 @@ canvas.addEventListener('mouseleave', handleMouseUp);
 speedSlider.addEventListener('input', () => {
   if (isRuning) startGame();
 });
+scaleSlider.addEventListener('input', updateScale);
 
 xSizeInput.addEventListener('input', initializeGame);
 ySizeInput.addEventListener('input', initializeGame);
