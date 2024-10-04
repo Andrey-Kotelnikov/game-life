@@ -10,6 +10,7 @@ const speedSlider = document.querySelector('#speed-slider');
 const xSizeInput = document.querySelector('#x-size');
 const ySizeInput = document.querySelector('#y-size');
 
+const generationTimeText = document.querySelector('.generation-time');
 const generationCounterText = document.querySelector('.generation');
 let generationCount = 0;
 
@@ -211,6 +212,8 @@ const renderChangedCells = () => {
 };
 
 const generateNextGeneration = () => {
+  const startTime = performance.now(); // Начало измерения времени
+
   const nextGeneration = [];
   let hasChanged = false; // Флаг, указывающий, изменилось ли состояние хотя бы одной клетки
   changedCellsIndexes = [];
@@ -232,6 +235,10 @@ const generateNextGeneration = () => {
 
     nextGeneration.push(nextCellState);
   }
+
+  const endTime = performance.now(); // Конец измерения времени
+  const generationDuration = Math.round(endTime - startTime); // Время генерации в миллисекундах
+  generationTimeText.textContent = `Время генерации: ${generationDuration} мс`; // Обновляем текст времени
 
   if (!hasChanged) {
     stopGame();
