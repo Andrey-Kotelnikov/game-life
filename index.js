@@ -6,6 +6,8 @@ const startButton = document.querySelector('.start-button');
 const clearButton = document.querySelector('.clear-button');
 const randomButton = document.querySelector('.random-button');
 
+const speedSlider = document.querySelector('#speed-slider');
+
 const xSizeInput = document.querySelector('#x-size');
 const ySizeInput = document.querySelector('#y-size');
 
@@ -24,6 +26,8 @@ let CANVAS_COLOR = '#1f2833';
 const CELL_SIZE_KOEF = 10;
 const INTERVAL_DELAY = 100;
 
+let isRuning = false;
+
 // const CANVAS_WIDTH = "400";
 // const CANVAS_HEIGHT = "400";
 
@@ -39,8 +43,8 @@ const createTable = () => {
   canvas.height = `${Y_SIZE_TABLE * CELL_SIZE_KOEF}`;
 
   resetCellsArray();
-  render();
-  // drawCells();
+  clearCanvas();
+  drawCells();
   createGrid();
 };
 
@@ -65,17 +69,10 @@ const initializeGame = () => {
 
 const randomGenerate = () => {
   cellsArray = Array.from({ length: X_SIZE_TABLE * Y_SIZE_TABLE }, () => Math.random() < 0.15);
-  render();
-  createGrid();
+  drawCells();
 };
 
 const clearCanvas = () => context.clearRect(0, 0, canvas.width, canvas.height);
-
-const render = () => {
-  clearCanvas();
-  drawCells();
-  // createGrid();
-};
 
 const createGrid = () => {
   for (let i = 0; i <= MAX; i++) {
@@ -115,9 +112,11 @@ const drawCells = () => {
     for (let j = 0; j < X_SIZE_TABLE; j++) {
       const index = getCellIndex(j, i);
       if (cellsArray[index]) {
-        context.fillStyle = CELL_COLOR; // Заливаем цветом клетки
+        context.fillStyle = CELL_COLOR;
         context.fillRect(j * CELL_SIZE_KOEF + 1, i * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
-        // context.strokeRect(j * CELL_SIZE_KOEF, i * CELL_SIZE_KOEF, CELL_SIZE_KOEF, CELL_SIZE_KOEF);
+      } else {
+        context.fillStyle = CANVAS_COLOR;
+        context.fillRect(j * CELL_SIZE_KOEF + 1, i * CELL_SIZE_KOEF + 1, CELL_SIZE_KOEF - 2, CELL_SIZE_KOEF - 2);
       }
     }
   }
@@ -178,18 +177,27 @@ const countNeighbors = (index) => {
   return count;
 };
 
+const getDelayFromSpeed = (speed) => {
+  const maxSpeed = 100;
+  const minDelay = 0;
+  const maxDelay = 500;
+  return maxDelay - (speed / maxSpeed) * (maxDelay - minDelay);
+};
+
 const stopGame = () => {
-  clearInterval(generationInterval); // Если эволюция запущена, останавливаем
-  generationInterval = null;
-  createGrid();
+  isRuning = false;
+  clearInterval(generationInterval);
 };
 
 const startGame = () => {
-  generationInterval = setInterval(generateNextGeneration, INTERVAL_DELAY);
+  isRuning = true;
+  const delay = getDelayFromSpeed(parseInt(speedSlider.value));
+  clearInterval(generationInterval);
+  generationInterval = setInterval(generateNextGeneration, delay);
 };
 
 const toggleGame = () => {
-  if (generationInterval) {
+  if (isRuning) {
     stopGame();
   } else {
     startGame();
@@ -236,7 +244,6 @@ const generateNextGeneration = () => {
   generationCount++;
   generationCounterText.textContent = `Поколение: ${generationCount}`;
 
-  // render();
   renderChangedCells();
 };
 
@@ -268,3 +275,7 @@ canvas.addEventListener('mousemove', (event) => {
 
 canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('mouseleave', handleMouseUp);
+
+speedSlider.addEventListener('input', () => {
+  startGame();
+});

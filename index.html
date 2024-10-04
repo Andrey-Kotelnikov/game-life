@@ -15,11 +15,14 @@
       <canvas class="canvas"></canvas>
     </main>
     <div class="controls">
-      <label for="size">Ширина поля:</label>
-      <input type="number" id="x-size" min="10" max="1000" value="50" />
+      <label for="x-size">Ширина поля:</label>
+      <input type="number" id="x-size" min="10" max="1000" value="50" step="10" />
 
-      <label for="size">Высота поля:</label>
-      <input type="number" id="y-size" min="10" max="1000" value="50" />
+      <label for="y-size">Высота поля:</label>
+      <input type="number" id="y-size" min="10" max="1000" value="50" step="10" />
+
+      <label for="speed-slider">Скорость игры:</label>
+      <input type="range" id="speed-slider" min="1" max="100" value="50" step="1" />
 
       <button class="setup-button">Настроить</button>
       <button class="start-button">Старт | Пауза</button>
