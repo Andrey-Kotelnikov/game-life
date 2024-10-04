@@ -1,7 +1,6 @@
 const canvas = document.querySelector('.canvas');
 const context = canvas.getContext('2d');
 
-const setupButton = document.querySelector('.setup-button');
 const startButton = document.querySelector('.start-button');
 const clearButton = document.querySelector('.clear-button');
 const randomButton = document.querySelector('.random-button');
@@ -257,7 +256,6 @@ initializeGame();
 
 // =============== listeners ================
 
-setupButton.addEventListener('click', initializeGame);
 startButton.addEventListener('click', toggleGame);
 clearButton.addEventListener('click', clearCells);
 randomButton.addEventListener('click', randomGenerate);
@@ -277,5 +275,8 @@ canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('mouseleave', handleMouseUp);
 
 speedSlider.addEventListener('input', () => {
-  startGame();
+  if (isRuning) startGame();
 });
+
+xSizeInput.addEventListener('input', initializeGame);
+ySizeInput.addEventListener('input', initializeGame);
