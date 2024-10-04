@@ -3,31 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>"Жизнь</title>
+    <title>«Жизнь»</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header>
-      <h1>Игра "Жизнь"</h1>
+      <h1>Игра «Жизнь»</h1>
+      <div class="controls">
+        <div class="inputs-row">
+          <label for="x-size">Ширина поля:</label>
+          <input type="number" id="x-size" min="10" max="1000" value="50" step="10" />
+    
+          <label for="y-size">Высота поля:</label>
+          <input type="number" id="y-size" min="10" max="1000" value="50" step="10" />
+    
+          <label for="speed-slider">Скорость игры:</label>
+          <input type="range" id="speed-slider" min="1" max="100" value="50" step="1" />
+        </div>
+        <div class="buttons-row">
+          <button class="start-button">Старт | Пауза</button>
+          <button class="clear-button">Очистить поле</button>
+          <button class="random-button">Случайная генерация</button>
+        </div>
+      </div>
     </header>
     <main>
       <div class="generation">Поколение: 0</div>
       <canvas class="canvas"></canvas>
     </main>
-    <div class="controls">
-      <label for="x-size">Ширина поля:</label>
-      <input type="number" id="x-size" min="10" max="1000" value="50" step="10" />
-
-      <label for="y-size">Высота поля:</label>
-      <input type="number" id="y-size" min="10" max="1000" value="50" step="10" />
-
-      <label for="speed-slider">Скорость игры:</label>
-      <input type="range" id="speed-slider" min="1" max="100" value="50" step="1" />
-
-      <button class="start-button">Старт | Пауза</button>
-      <button class="clear-button">Очистить поле</button>
-      <button class="random-button">Случайная генерация</button>
-    </div>
     <script src="index.js"></script>
   </body>
 </html>

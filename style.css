@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Playfair+Display:wght@700&display=swap');
+
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   margin: 0;
   padding: 0;
   display: flex;
@@ -14,12 +16,69 @@ header {
   padding: 20px;
   text-align: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
 
 header h1 {
   margin: 0;
   font-size: 24px;
   color: #66fcf1;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  background-color: #1f2833;
+}
+
+.controls .inputs-row,
+.controls .buttons-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.controls label {
+  font-size: 14px;
+  color: #c5c6c7;
+}
+
+.controls input[type='number'],
+.controls input[type='range'] {
+  padding: 8px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid #45a29e;
+  background-color: #0b0c10;
+  color: #c5c6c7;
+  cursor: pointer;
+}
+
+button {
+  padding: 8px 15px;
+  font-size: 12px;
+  background-color: #66fcf1;
+  color: #0b0c10;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #45a29e;
+  transform: scale(1.05);
+}
+
+button:active {
+  background-color: #1f2833;
 }
 
 main {
@@ -47,64 +106,4 @@ main {
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   cursor: crosshair;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center;
-  align-items: center;
-  padding: 15px;
-  background-color: #1f2833;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.controls label {
-  font-size: 16px;
-  color: #c5c6c7;
-}
-
-.controls input[type='number'] {
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #45a29e;
-  border-radius: 8px;
-  background-color: #0b0c10;
-  color: #c5c6c7;
-  width: 80px;
-}
-
-button {
-  padding: 10px 20px;
-  font-size: 14px;
-  background-color: #66fcf1;
-  color: #0b0c10;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-button:hover {
-  background-color: #45a29e;
-  transform: scale(1.05);
-}
-
-button:active {
-  background-color: #1f2833;
-}
-
-@media screen and (max-width: 600px) {
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  button,
-  .controls input[type='number'] {
-    width: 100%;
-  }
 }
